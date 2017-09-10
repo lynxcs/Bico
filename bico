@@ -1,0 +1,29 @@
+#!/bin/bash
+# Author: Domas Kalinauskas (lynxcs)
+# Application: bico
+# Description: Outputs icons depending on battery level and status
+#
+#
+#
+BATC=`cat /sys/class/power_supply/BAT0/capacity`
+case $BATC in
+	[0-1][0-9])
+		BATICO=""
+		;;
+	[2-3][0-9])
+                BATICO=""
+                ;;
+        [4-5][0-9])
+                BATICO=""
+                ;;
+        [6-7][0-9])
+                BATICO=""
+                ;;
+        [8-9][0-9])
+                BATICO=""
+                ;;
+        100)
+                BATICO=""
+                ;;
+esac
+echo "$BATC% $BATICO "
