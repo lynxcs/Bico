@@ -28,7 +28,7 @@ case $BATC in
                 ;;
 esac
 
-echo "$BATC% $BATICO"
+echo "$BATC% $BATICO "
 }
 charging(){
 batteryCounter=1
