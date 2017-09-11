@@ -27,37 +27,76 @@ case $BATC in
                 BATICO=""
                 ;;
 esac
+
+echo "$BATC% $BATICO"
 }
 charging(){
+batteryCounter=1
+while true; do
 
-case $batteryCounter in
-        1)
-                batteryCounter=2
-		BATICO=""
-	       	;;
-        2)
-		batteryCounter=3
-                BATICO=""
+	case $batteryCounter in
+        	1)
+                	batteryCounter=2
+			BATICO=""
+	       		;;
+        	2)
+			batteryCounter=3
+                	BATICO=""
+			;;
+        	3)
+			batteryCounter=4
+                	BATICO=""
+			;;
+        	4)
+			batteryCounter=5
+                	BATICO=""
+			;;
+        	5)
+			batteryCounter=1
+                	BATICO=""
+			;;
+	esac
+
+	echo -n -e "$BATICO"\\r
+	sleep 0.35
+done
+}
+#Text modifiers
+RED='\033[0;31m'
+NC='\033[0m'
+#Process arguments
+while [[ $# -gt 0 ]]; do
+
+key="$1"
+case $key in
+	-s|--static)
+		if [[ "$CHARGING" -eq "1" ]]; then
+			echo -e "$RED!CAN'T USE STATIC (-s) WITH CHARGING (-c)!$NC"
+			exit 1
+		fi
+		STATIC=1
+		shift
 		;;
-        3)
-		batteryCounter=4
-                BATICO=""
-		;;
-        4)
-		batteryCounter=5
-                BATICO=""
-		;;
-        5)
-		batteryCounter=1
-                BATICO=""
+        -c|--charging)
+		if [[ "$STATIC" -eq "1" ]]; then
+			echo -e "$RED!CAN'T USE CHARGING (-c) WITH STATIC (-s)!$NC"
+			exit 1
+		fi
+		CHARGING=1
+		shift
 		;;
 esac
-}
-#batteryCounter=1
-#while true; do
-#	charging;
-#	echo -n -e " $BATICO "\\r
-#	sleep 0.35
-#done
-static_bat;
-echo "$BATC% $BATICO "
+done
+#Execute commands.
+if [[ "$STATIC" -eq "1" ]]; then
+	static_bat;
+elif [[ "$CHARGING" -eq "1" ]]; then
+	charging;
+else #Fallback to automatic (If status=charging then charging else static
+	BATS=`cat /sys/class/power_supply/BAT0/status`
+	if [ $BATS = "Charging" ]; then
+		charging;
+	else
+	static_bat;
+	fi
+fi
