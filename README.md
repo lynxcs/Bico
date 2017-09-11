@@ -6,7 +6,7 @@ Font awesome icons
 Just call the script ./bico and that's it!
 ### TODO
 - [] Add config file for custom battery levels and icons!
-- [] Add "Charging"
+- [x] Add "Charging"
 - [] Implement color changing?
-- [] ^ Add arguments!
+- [x] ^ Add arguments!
 
