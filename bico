@@ -5,6 +5,7 @@
 #
 #
 #
+static_bat(){
 BATC=`cat /sys/class/power_supply/BAT0/capacity`
 case $BATC in
 	[0-1][0-9])
@@ -26,4 +27,37 @@ case $BATC in
                 BATICO=""
                 ;;
 esac
+}
+charging(){
+
+case $batteryCounter in
+        1)
+                batteryCounter=2
+		BATICO=""
+	       	;;
+        2)
+		batteryCounter=3
+                BATICO=""
+		;;
+        3)
+		batteryCounter=4
+                BATICO=""
+		;;
+        4)
+		batteryCounter=5
+                BATICO=""
+		;;
+        5)
+		batteryCounter=1
+                BATICO=""
+		;;
+esac
+}
+#batteryCounter=1
+#while true; do
+#	charging;
+#	echo -n -e " $BATICO "\\r
+#	sleep 0.35
+#done
+static_bat;
 echo "$BATC% $BATICO "
