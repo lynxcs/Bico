@@ -6,97 +6,161 @@
 #
 #
 static_bat(){
-BATC=`cat /sys/class/power_supply/BAT0/capacity`
-case $BATC in
-	[0-1][0-9])
-		BATICO=""
-		;;
-	[2-3][0-9])
-                BATICO=""
-                ;;
-        [4-5][0-9])
-                BATICO=""
-                ;;
-        [6-7][0-9])
-                BATICO=""
-                ;;
-        [8-9][0-9])
-                BATICO=""
-                ;;
-        100)
-                BATICO=""
-                ;;
-esac
-
-echo "$BATC% $BATICO "
-}
-charging(){
-batteryCounter=1
-while true; do
-
-	case $batteryCounter in
-        	1)
-                	batteryCounter=2
+	BATC=`cat /sys/class/power_supply/BAT0/capacity`
+	case $BATC in
+		[0-1][0-9] | [1-9])
 			BATICO=""
-	       		;;
-        	2)
-			batteryCounter=3
-                	BATICO=""
 			;;
-        	3)
-			batteryCounter=4
-                	BATICO=""
+		[2-3][0-9])
+			BATICO=""
 			;;
-        	4)
-			batteryCounter=5
-                	BATICO=""
+		[4-5][0-9])
+			BATICO=""
 			;;
-        	5)
-			batteryCounter=1
-                	BATICO=""
+		[6-7][0-9])
+			BATICO=""
+			;;
+		[8-9][0-9])
+			BATICO=""
+			;;
+		100)
+			BATICO=""
 			;;
 	esac
 
-	echo -n -e "$BATICO"\\r
-	sleep 0.35
-done
+	echo "$BATC% $BATICO "
 }
+charging(){
+	BATC=`cat /sys/class/power_supply/BAT0/capacity`
+	if [ ! -f $1/Ccycle ]; then
+		touch $1/Ccycle
+		echo "1" > $1/Ccycle
+	fi
+	batteryCounter=`cat $1/Ccycle`
+	while true; do
+
+		case $batteryCounter in
+			1)
+				echo "2" > $1/Ccycle
+				batteryCounter=2
+				BATICO=""
+				;;
+			2)
+				echo "3" > $1/Ccycle
+				batteryCounter=3
+				BATICO=""
+				;;
+			3)
+				echo "4" > $1/Ccycle
+				batteryCounter=4
+				BATICO=""
+				;;
+			4)
+				echo "5" > $1/Ccycle
+				batteryCounter=5
+				BATICO=""
+				;;
+			5)
+				echo "1" > $1/Ccycle
+				batteryCounter=1
+				BATICO=""
+				;;
+		esac
+
+		echo -n -e "$BATC% $BATICO "\\r
+		sleep 0.35
+	done
+}
+staticcharging(){
+	BATC=`cat /sys/class/power_supply/BAT0/capacity`
+	if [ ! -f $1/Scycle ]; then
+		touch $1/Scycle
+		echo "1" > $1/Scycle
+	fi
+	batteryCounter=`cat $1/Scycle`
+	case $batteryCounter in
+		1)
+			echo "2" > $1/Scycle
+			batteryCounter=2
+			BATICO=""
+			;;
+		2)
+			echo "3" > $1/Scycle
+			batteryCounter=3
+			BATICO=""
+			;;
+		3)
+			echo "4" > $1/Scycle
+			batteryCounter=4
+			BATICO=""
+			;;
+		4)
+			echo "5" > $1/Scycle
+			batteryCounter=5
+			BATICO=""
+			;;
+		5)
+			echo "1" > $1/Scycle
+			batteryCounter=1
+			BATICO=""
+			;;
+	esac
+
+	echo "$BATC% $BATICO "
+}
+
+#Initialization
+#if [ ! -d "/tmp/bico" ]; then
+#	mkdir /tmp/bico
+#fi
+#if [ ! -f "/tmp/bico/cycle" ]; then
+#	touch /tmp/bico/cycle
+#	echo "1" > /tmp/bico/cycle
+#fi
 #Text modifiers
+TEMPDIR=/tmp/bico/
 RED='\033[0;31m'
 NC='\033[0m'
 #Process arguments
 while [[ $# -gt 0 ]]; do
 
-key="$1"
-case $key in
-	-s|--static)
-		if [[ "$CHARGING" -eq "1" ]]; then
-			echo -e "$RED!CAN'T USE STATIC (-s) WITH CHARGING (-c)!$NC"
-			exit 1
-		fi
-		STATIC=1
-		shift
-		;;
-        -c|--charging)
-		if [[ "$STATIC" -eq "1" ]]; then
-			echo -e "$RED!CAN'T USE CHARGING (-c) WITH STATIC (-s)!$NC"
-			exit 1
-		fi
-		CHARGING=1
-		shift
-		;;
-esac
+	key="$1"
+	case $key in
+		-s|--static)
+			STATIC=1
+			shift
+			;;
+		-c|--charging)
+			CHARGING=1
+			shift
+			;;
+		-i|--chargingicon)
+			ICON=1
+			shift
+			;;
+		-t|--temp-dir)
+			TEMPDIR="$2"
+			shift
+			;;
+	esac
+shift
 done
 #Execute commands.
+if [ ! -d $TEMPDIR ]; then
+	mkdir $TEMPDIR
+fi
+echo $TEMPDIR
 if [[ "$STATIC" -eq "1" ]]; then
 	static_bat;
 elif [[ "$CHARGING" -eq "1" ]]; then
-	charging;
+	charging $TEMPDIR;
+elif [[ "$ICON" -eq "1" ]]; then
+	staticcharging $TEMPDIR;
 else #Fallback to automatic (If status=charging then charging else static
 	BATS=`cat /sys/class/power_supply/BAT0/status`
 	if [ $BATS = "Charging" ]; then
-		charging;
+		staticcharging;
 	else
-	static_bat;
+		static_bat;
 	fi
 fi
